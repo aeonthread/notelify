@@ -1,34 +1,50 @@
 <template>
-<div>
-  <button @click="renderHtml">click me</button>
-  <div ref="ed" class="editor" contenteditable="true" v-html="html" @focusout="input"></div>
+  <div>
+    <template v-for="block in content.body">
+      <component :is="block.component" :block="block" :key="block._uid"></component>
+    </template>
 </div>
 </template>
 
 <script>
+import Foo from "./Foo";
 export default {
   name: 'ContentEditor',
-  data(){
+  components: {
+    Foo
+  },
+  data() {
     return {
-      html: '',
+      content: {
+        body: [{
+          _uid: "BUY6Drn9e1",
+          component: "foo",
+          headline: "Foo"
+        },
+        {
+          _uid: "X1JAfdsZxy",
+          component: "foo",
+          headline: "Another headline"
+        }
+        ]
+      }
     }
   },
-  methods:{
-    input(e){
+  methods: {
+    update(e) {
       this.html = e.target.innerHTML;
+      console.log(this.getPos());
     },
-    renderHtml(){
-      this.html += "<img src='https://cdn-images-1.medium.com/max/853/1*FH12a2fX61aHOn39pff9vA.jpeg' alt='someimage' width=200px dir='rt'>";
-    }
-  }
+    line_number_up(e) {
+      let line_number_matches = this.html.match(/<br>/g);
+      let line_number = line_number_matches.length;
+      this.line_number = line_number;
+    },
+    updateDOM(new_html, e) {
+      this.html = new_html;
+      e.target.innerHTML = new_html;
+    },
+  },
 }
 </script>
 
-<style>
-  .editor{
-    min-height: 20px;
-    white-space: pre;
-    background-color:rgb(250, 28, 65);
-  }
- 
-</style>

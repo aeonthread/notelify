@@ -1,5 +1,5 @@
 <template>
-      <ContentEditor></ContentEditor> 
+        <ContentEditor></ContentEditor> 
 </template>
 
 <script>
@@ -12,7 +12,7 @@ export default {
 }
 </script>
 
-<style module>
+<style>
   
  
 </style>
