@@ -1,18 +1,18 @@
 <template>
-        <ContentEditor></ContentEditor> 
+    <ContentEditor>
+    </ContentEditor>
 </template>
 
 <script>
 import ContentEditor from './ContentEditor'
 export default {
-  name: 'App',
-  components: {
-    'ContentEditor': ContentEditor
-  }
+    name: 'App',
+    components: {
+        'ContentEditor': ContentEditor
+    }
 }
 </script>
 
 <style>
-  
- 
+
 </style>

@@ -1,9 +1,6 @@
 <template>
     <div>
-        <h1>{{line_number}}</h1>
-        <div>
-            <p id="ed" v-model="html" ref="ed" class="editor" contenteditable="tr" @keyup.space="changeTester" @keyup.enter="line_number_up" @input="update"></p>
-        </div>
+        <div id="ed" v-model="html" ref="ed" class="editor" @keydown.tab="change" @click="getpos" contenteditable="tr" @input="update"></div>
     </div>
 </template>
 
@@ -13,32 +10,62 @@ export default {
     data() {
         return {
             html: '',
-            line_number: 0,
+            pos: {
+                start: 0,
+                end: 0,
+            },
         }
     },
     methods: {
         update(e) {
             this.html = e.target.innerHTML;
-            console.log(this.getPos());
+            // this.getpos(e);
+            // this.change(e);
+        },
+        getpos(e) {
+            console.log(this.getPos(e.target));
         },
         renderHtml(e) {
             this.html += "<img src='https://cdn-images-1.medium.com/max/853/1*FH12a2fX61aHOn39pff9vA.jpeg' alt='someimage' width=200px dir='rt'>";
-        },
-        append(e) {
-            this.html += "<p>this is a p tag</p>";
-            this.updateDOM(this.html, e);
-        },
-        line_number_up(e) {
-            let line_number_matches = this.html.match(/<br>/g);
-            let line_number = line_number_matches.length;
-            this.line_number = line_number;
         },
         updateDOM(new_html, e) {
             this.html = new_html;
             e.target.innerHTML = new_html;
         },
-        getCaretCharacterOffsetWithin(element) {
-            var caretOffset = 0;
+        change(e) {
+            e.preventDefault();
+            let source = this.html.split(' ');
+            let word;
+            let command;
+            var indexOfB = source.findIndex(function(item) {
+                return item.includes('`');
+            });
+            let temp = source.filter((item) => {
+                if (indexOfB) {
+                    let index = item.indexOf('`');
+                    word = item.substr(0, index);
+                    command = item.substr(index + 1, item.length);
+                }
+                return item;
+            });
+            source[indexOfB] = "<b id='b'>" + word + "</b>";
+            let new_html = source.join(' ');
+            this.updateDOM(new_html, e);
+            this.setPos('b');
+        },
+        setPos(context) {
+            var node = document.querySelector(context);
+            node.focus();
+            var textNode = node.firstChild;
+            var caret = 4; // insert caret after the 10th character say
+            var range = document.createRange();
+            range.setStart(textNode, caret);
+            range.setEnd(textNode, caret);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        },
+        getPos(element) {
             var doc = element.ownerDocument || element.document;
             var win = doc.defaultView || doc.parentWindow;
             var sel;
@@ -48,52 +75,22 @@ export default {
                     var range = win.getSelection().getRangeAt(0);
                     var preCaretRange = range.cloneRange();
                     preCaretRange.selectNodeContents(element);
+                    preCaretRange.setEnd(range.startContainer, range.startOffset);
+                    this.pos.start = preCaretRange.toString().length;
                     preCaretRange.setEnd(range.endContainer, range.endOffset);
-                    caretOffset = preCaretRange.toString().length;
+                    this.pos.end = preCaretRange.toString().length;
                 }
             } else if ((sel = doc.selection) && sel.type != "Control") {
                 var textRange = sel.createRange();
                 var preCaretTextRange = doc.body.createTextRange();
                 preCaretTextRange.moveToElementText(element);
+                preCaretTextRange.setEndPoint("EndToStart", textRange);
+                this.pos.start = preCaretTextRange.text.length;
                 preCaretTextRange.setEndPoint("EndToEnd", textRange);
-                caretOffset = preCaretTextRange.text.length;
+                this.pos.end = preCaretTextRange.text.length;
             }
-            return caretOffset;
+            return { start: this.pos.start, end: this.pos.end };
         },
-        setPos(arg) {
-            var el = this.$refs.ed;
-            var range = document.createRange();
-            var sel = window.getSelection();
-            range.setStart(el.childNodes[0], arg);
-            range.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(range);
-            el.focus();
-        },
-        getPos() {
-            if (window.getSelection && window.getSelection().getRangeAt) {
-                var range = window.getSelection().getRangeAt(0);
-                var selectedObj = window.getSelection();
-                var rangeCount = 0;
-                var childNodes = selectedObj.anchorNode.parentNode.childNodes;
-                for (var i = 0; i < childNodes.length; i++) {
-                    if (childNodes[i] == selectedObj.anchorNode) {
-                        break;
-                    }
-                    if (childNodes[i].outerHTML)
-                        rangeCount += childNodes[i].outerHTML.length;
-                    else if (childNodes[i].nodeType == 3) {
-                        rangeCount += childNodes[i].textContent.length;
-                    }
-                }
-                return range.startOffset + rangeCount;
-            }
-            return -1;
-        },
-
-        changeTester(e) {
-            this.setPos(9);
-        }
     },
 }
 </script>

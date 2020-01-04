@@ -5,27 +5,21 @@
     </template>
 </div>
 </template>
-
 <script>
-import Foo from "./Foo";
+
+import TextBlock from "./TextBlock";
 export default {
   name: 'ContentEditor',
   components: {
-    Foo
+    TextBlock
   },
   data() {
     return {
       content: {
         body: [{
           _uid: "BUY6Drn9e1",
-          component: "foo",
-          headline: "Foo"
+          component: "TextBlock",
         },
-        {
-          _uid: "X1JAfdsZxy",
-          component: "foo",
-          headline: "Another headline"
-        }
         ]
       }
     }
@@ -34,11 +28,6 @@ export default {
     update(e) {
       this.html = e.target.innerHTML;
       console.log(this.getPos());
-    },
-    line_number_up(e) {
-      let line_number_matches = this.html.match(/<br>/g);
-      let line_number = line_number_matches.length;
-      this.line_number = line_number;
     },
     updateDOM(new_html, e) {
       this.html = new_html;
