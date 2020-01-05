@@ -19,7 +19,7 @@ export default {
         body: [{
           _uid: "BUY6Drn9e1",
           component: "TextBlock",
-        },
+        }
         ]
       }
     }

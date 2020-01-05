@@ -173,6 +173,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'TextBlock',
   data: function data() {
@@ -185,47 +186,55 @@ __webpack_require__.r(__webpack_exports__);
     };
   },
   methods: {
+    wrap: function wrap(e) {
+      var source = this.html.split(' ');
+      var temp = [];
+      var word;
+      var index;
+      var command;
+      var template;
+      var id;
+      source.map(function (item, i) {
+        if (item) {
+          index = item.indexOf('`');
+          word = item.trim();
+          command = "p";
+
+          if (index !== -1) {
+            word = item.substr(0, index);
+            command = item.substr(index + 1, item.length);
+          }
+
+          id = i;
+          template = '<' + command + ">" + word + '</' + command + '>';
+          console.log(template);
+          temp.push(template);
+        }
+      });
+      console.log(temp);
+      var new_html = temp.join(' ');
+      this.updateDOM(new_html, e);
+      this.setPos(e.target.id + ' ' + command, word.length);
+      console.log(e.target.id);
+    },
     update: function update(e) {
-      this.html = e.target.innerHTML; // this.getpos(e);
-      // this.change(e);
+      this.html = e.target.innerText;
     },
     getpos: function getpos(e) {
       console.log(this.getPos(e.target));
-    },
-    renderHtml: function renderHtml(e) {
-      this.html += "<img src='https://cdn-images-1.medium.com/max/853/1*FH12a2fX61aHOn39pff9vA.jpeg' alt='someimage' width=200px dir='rt'>";
     },
     updateDOM: function updateDOM(new_html, e) {
       this.html = new_html;
       e.target.innerHTML = new_html;
     },
-    change: function change(e) {
+    format: function format(e) {
       e.preventDefault();
-      var source = this.html.split(' ');
-      var word;
-      var command;
-      var indexOfB = source.findIndex(function (item) {
-        return item.includes('`');
-      });
-      var temp = source.filter(function (item) {
-        if (indexOfB) {
-          var index = item.indexOf('`');
-          word = item.substr(0, index);
-          command = item.substr(index + 1, item.length);
-        }
-
-        return item;
-      });
-      source[indexOfB] = "<b id='b'>" + word + "</b>";
-      var new_html = source.join(' ');
-      this.updateDOM(new_html, e);
-      this.setPos('b');
     },
-    setPos: function setPos(context) {
-      var node = document.querySelector(context);
+    setPos: function setPos(context, length) {
+      var node = document.querySelector('#' + context);
       node.focus();
       var textNode = node.firstChild;
-      var caret = 4; // insert caret after the 10th character say
+      var caret = length; // insert caret after the 10th character say
 
       var range = document.createRange();
       range.setStart(textNode, caret);
@@ -283,7 +292,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, "\n.editor {\n    min-height: 20px;\n    white-space: pre;\n    background-color: rgb(255, 247, 207);\n}\n", ""]);
+exports.push([module.i, "\nspan,p,h1,h2,h3,h4,h5{\n    display: inline;\n}\n.editor {\n    min-height: 20px;\n    white-space: pre;\n    background-color: rgb(255, 247, 207);\n}\n", ""]);
 
 // exports
 
@@ -1463,7 +1472,6 @@ var render = function() {
   var _c = _vm._self._c || _h
   return _c("div", [
     _c("div", {
-      ref: "ed",
       staticClass: "editor",
       attrs: { id: "ed", contenteditable: "tr" },
       on: {
@@ -1474,7 +1482,8 @@ var render = function() {
           ) {
             return null
           }
-          return _vm.change($event)
+          $event.preventDefault()
+          return _vm.wrap($event)
         },
         click: _vm.getpos,
         input: _vm.update

@@ -1,6 +1,7 @@
 <template>
     <div>
-        <div id="ed" v-model="html" ref="ed" class="editor" @keydown.tab="change" @click="getpos" contenteditable="tr" @input="update"></div>
+        <div id="ed" v-model="html" class="editor" @keydown.tab.prevent="wrap" @click="getpos" contenteditable="tr" @input="update">
+        </div>
     </div>
 </template>
 
@@ -17,47 +18,53 @@ export default {
         }
     },
     methods: {
+        wrap(e) {
+            let source = this.html.split(' ');
+            let temp = [];
+            let word;
+            let index
+            let command;
+            let template;
+            let id;
+            source.map((item,i) => {
+                if (item) {
+                    index = item.indexOf('`');
+                    word = item.trim();
+                    command = "p";
+                    if (index !== -1) {
+                        word = item.substr(0,index);
+                        command = item.substr(index + 1,item.length);
+                    }
+                    id = i;
+                    template = '<'+command +">"+word+'</'+command+'>';
+                    console.log(template);
+                    temp.push(template);
+                }
+            });
+            console.log(temp);
+            let new_html = temp.join(' ');
+            this.updateDOM(new_html, e);
+            this.setPos(e.target.id+' '+command,word.length);
+            console.log(e.target.id);
+        },
         update(e) {
-            this.html = e.target.innerHTML;
-            // this.getpos(e);
-            // this.change(e);
+            this.html = e.target.innerText;
         },
         getpos(e) {
             console.log(this.getPos(e.target));
-        },
-        renderHtml(e) {
-            this.html += "<img src='https://cdn-images-1.medium.com/max/853/1*FH12a2fX61aHOn39pff9vA.jpeg' alt='someimage' width=200px dir='rt'>";
         },
         updateDOM(new_html, e) {
             this.html = new_html;
             e.target.innerHTML = new_html;
         },
-        change(e) {
+        format(e) {
             e.preventDefault();
-            let source = this.html.split(' ');
-            let word;
-            let command;
-            var indexOfB = source.findIndex(function(item) {
-                return item.includes('`');
-            });
-            let temp = source.filter((item) => {
-                if (indexOfB) {
-                    let index = item.indexOf('`');
-                    word = item.substr(0, index);
-                    command = item.substr(index + 1, item.length);
-                }
-                return item;
-            });
-            source[indexOfB] = "<b id='b'>" + word + "</b>";
-            let new_html = source.join(' ');
-            this.updateDOM(new_html, e);
-            this.setPos('b');
         },
-        setPos(context) {
-            var node = document.querySelector(context);
+        setPos(context,length) {
+            var node = document.querySelector('#'+context);
             node.focus();
             var textNode = node.firstChild;
-            var caret = 4; // insert caret after the 10th character say
+            var caret = length; // insert caret after the 10th character say
             var range = document.createRange();
             range.setStart(textNode, caret);
             range.setEnd(textNode, caret);
@@ -96,6 +103,9 @@ export default {
 </script>
 
 <style>
+span,p,h1,h2,h3,h4,h5{
+    display: inline;
+}
 .editor {
     min-height: 20px;
     white-space: pre;
