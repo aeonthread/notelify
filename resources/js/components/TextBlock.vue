@@ -1,11 +1,12 @@
 <template>
     <div>
-        <div id="ed" v-model="html" class="editor" @keydown.tab.prevent="wrap" @click="getpos" contenteditable="tr" @input="update">
+        <div id="ed" v-model="html" class="editor" @keydown.tab.prevent="run" @click="getpos" contenteditable="tr" @input="update">
         </div>
     </div>
 </template>
 
 <script>
+import uuidv1 from 'uuid/v1';
 export default {
     name: 'TextBlock',
     data() {
@@ -15,40 +16,69 @@ export default {
                 start: 0,
                 end: 0,
             },
+            index: [],
         }
     },
     methods: {
-        wrap(e) {
-            let source = this.html.split(' ');
+        store(i, w, t, l) {
+            this.index.push({
+                id: i,
+                line: l,
+                word: w,
+                tag: t,
+                pos: this.pos.start
+            });
+        },
+        exists(word, line) {
+            let index = this.index;
+            let source = index.map(item => {
+                if (item.pos == this.pos.start && item.line == line) {
+                    return item;
+                }
+            });
+            return source;
+        },
+        run(e) {
+            let source = this.html.split('\n');
             let temp = [];
             let word;
             let index
             let command;
             let template;
             let id;
-            source.map((item,i) => {
+            source.map((item, i) => {
                 if (item) {
                     index = item.indexOf('`');
                     word = item.trim();
                     command = "p";
                     if (index !== -1) {
-                        word = item.substr(0,index);
-                        command = item.substr(index + 1,item.length);
+                        word = item.substr(0, index);
+                        command = item.substr(index + 1, item.length);
                     }
-                    id = i;
-                    template = '<'+command +">"+word+'</'+command+'>';
-                    console.log(template);
+                    let find = this.exists(word, i);
+                    console.log(find);
+                    if (find.length === 0 | find[0] === undefined) {
+                        let uuid = uuidv1();
+                        this.store(uuid, word, command, i + 1);
+                        template = '<' + command + ">" + word + '</' + command + '>';
+                    } else {
+                        this.index.map(item => {
+                            if (item.id === find[0].id) {
+                                item.tag = command;
+                            }
+                            template = '<' + item.tag + ">" + word + '</' + item.tag + '>';
+                        });
+                    }
                     temp.push(template);
                 }
             });
-            console.log(temp);
-            let new_html = temp.join(' ');
+            let new_html = temp.join('\n');
             this.updateDOM(new_html, e);
-            this.setPos(e.target.id+' '+command,word.length);
-            console.log(e.target.id);
+            this.setPos(e.target.id + ' ' + command, word.length);
         },
         update(e) {
             this.html = e.target.innerText;
+            this.getpos(e);
         },
         getpos(e) {
             console.log(this.getPos(e.target));
@@ -57,11 +87,8 @@ export default {
             this.html = new_html;
             e.target.innerHTML = new_html;
         },
-        format(e) {
-            e.preventDefault();
-        },
-        setPos(context,length) {
-            var node = document.querySelector('#'+context);
+        setPos(context, length) {
+            var node = document.querySelector('#' + context);
             node.focus();
             var textNode = node.firstChild;
             var caret = length; // insert caret after the 10th character say
@@ -103,9 +130,16 @@ export default {
 </script>
 
 <style>
-span,p,h1,h2,h3,h4,h5{
+span,
+p,
+h1,
+h2,
+h3,
+h4,
+h5 {
     display: inline;
 }
+
 .editor {
     min-height: 20px;
     white-space: pre;
