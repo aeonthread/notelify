@@ -6,86 +6,70 @@
 </template>
 
 <script>
-import uuidv1 from 'uuid/v1';
+import uuid from 'uuid/v1';
 export default {
     name: 'TextBlock',
     data() {
         return {
-            html: '',
+            html: '\n',
             pos: {
                 start: 0,
                 end: 0,
             },
-            index: [],
+            index: {
+                line: [],
+                current: [
+
+                ],
+            }
         }
     },
     methods: {
-        store(i, w, t, l) {
-            this.index.push({
-                id: i,
-                line: l,
-                word: w,
-                tag: t,
-                pos: this.pos.start
-            });
-        },
-        exists(word, line) {
-            let index = this.index;
-            let source = index.map(item => {
-                if (item.pos == this.pos.start && item.line == line) {
-                    return item;
-                }
-            });
-            return source;
-        },
         run(e) {
-            let source = this.html.split('\n');
-            let temp = [];
-            let word;
-            let index
-            let command;
-            let template;
-            let id;
-            source.map((item, i) => {
-                if (item) {
-                    index = item.indexOf('`');
-                    word = item.trim();
-                    command = "p";
-                    if (index !== -1) {
-                        word = item.substr(0, index);
-                        command = item.substr(index + 1, item.length);
-                    }
-                    let find = this.exists(word, i);
-                    console.log(find);
-                    if (find.length === 0 | find[0] === undefined) {
-                        let uuid = uuidv1();
-                        this.store(uuid, word, command, i + 1);
-                        template = '<' + command + ">" + word + '</' + command + '>';
-                    } else {
-                        this.index.map(item => {
-                            if (item.id === find[0].id) {
-                                item.tag = command;
-                            }
-                            template = '<' + item.tag + ">" + word + '</' + item.tag + '>';
-                        });
-                    }
-                    temp.push(template);
-                }
+            let html = this.indexLines();
+            let newHtml = this.getFirstIfNotEmpty(html).parentElement.outerHTML;
+            this.updateDOM(newHtml, e);
+            // this.setPos();
+        },
+        getDocument() {
+            let parser = new DOMParser();
+            let document = parser.parseFromString(this.html, "text/html");
+            return document.childNodes;
+        },
+        getBody() {
+            let document = this.getDocument();
+            let body = this.getFirstIfNotEmpty(document).childNodes[1].childNodes;
+            return body;
+        },
+        indexLines() {
+            let body = this.getBody();
+            let items = this.getIfNotEmpty(body);
+            items.forEach((item, i) => {
+                item.id = uuid();
             });
-            let new_html = temp.join('\n');
-            this.updateDOM(new_html, e);
-            this.setPos(e.target.id + ' ' + command, word.length);
+            return body;
         },
-        update(e) {
-            this.html = e.target.innerText;
-            this.getpos(e);
+        getIfNotEmpty(collection) {
+            if (collection.length > 0) {
+                return collection;
+            }
+            return "empty array";
         },
-        getpos(e) {
-            console.log(this.getPos(e.target));
+        getFirstIfNotEmpty(collection) {
+            if (collection.length > 0) {
+                return collection[0];
+            }
+            return "empty array";
         },
         updateDOM(new_html, e) {
             this.html = new_html;
             e.target.innerHTML = new_html;
+        },
+        update(e) {
+            this.html = e.target.innerHTML;
+        },
+        getpos(e) {
+            // console.log(this.getPos(e.target));
         },
         setPos(context, length) {
             var node = document.querySelector('#' + context);

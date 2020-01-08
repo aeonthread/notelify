@@ -181,93 +181,63 @@ __webpack_require__.r(__webpack_exports__);
   name: 'TextBlock',
   data: function data() {
     return {
-      html: '',
+      html: '\n',
       pos: {
         start: 0,
         end: 0
       },
-      index: []
+      index: {
+        line: [],
+        current: []
+      }
     };
   },
   methods: {
-    store: function store(i, w, t, l) {
-      this.index.push({
-        id: i,
-        line: l,
-        word: w,
-        tag: t,
-        pos: this.pos.start
-      });
-    },
-    exists: function exists(word, line) {
-      var _this = this;
-
-      var index = this.index;
-      var source = index.map(function (item) {
-        if (item.pos == _this.pos.start && item.line == line) {
-          return item;
-        }
-      });
-      return source;
-    },
     run: function run(e) {
-      var _this2 = this;
-
-      var source = this.html.split('\n');
-      var temp = [];
-      var word;
-      var index;
-      var command;
-      var template;
-      var id;
-      source.map(function (item, i) {
-        if (item) {
-          index = item.indexOf('`');
-          word = item.trim();
-          command = "p";
-
-          if (index !== -1) {
-            word = item.substr(0, index);
-            command = item.substr(index + 1, item.length);
-          }
-
-          var find = _this2.exists(word, i);
-
-          console.log(find);
-
-          if (find.length === 0 | find[0] === undefined) {
-            var uuid = uuid_v1__WEBPACK_IMPORTED_MODULE_0___default()();
-
-            _this2.store(uuid, word, command, i + 1);
-
-            template = '<' + command + ">" + word + '</' + command + '>';
-          } else {
-            _this2.index.map(function (item) {
-              if (item.id === find[0].id) {
-                item.tag = command;
-              }
-
-              template = '<' + item.tag + ">" + word + '</' + item.tag + '>';
-            });
-          }
-
-          temp.push(template);
-        }
+      var html = this.indexLines();
+      var newHtml = this.getFirstIfNotEmpty(html).parentElement.outerHTML;
+      this.updateDOM(newHtml, e); // this.setPos();
+    },
+    getDocument: function getDocument() {
+      var parser = new DOMParser();
+      var document = parser.parseFromString(this.html, "text/html");
+      return document.childNodes;
+    },
+    getBody: function getBody() {
+      var document = this.getDocument();
+      var body = this.getFirstIfNotEmpty(document).childNodes[1].childNodes;
+      return body;
+    },
+    indexLines: function indexLines() {
+      var body = this.getBody();
+      var items = this.getIfNotEmpty(body);
+      items.forEach(function (item, i) {
+        item.id = uuid_v1__WEBPACK_IMPORTED_MODULE_0___default()();
       });
-      var new_html = temp.join('\n');
-      this.updateDOM(new_html, e);
-      this.setPos(e.target.id + ' ' + command, word.length);
+      return body;
     },
-    update: function update(e) {
-      this.html = e.target.innerText;
-      this.getpos(e);
+    getIfNotEmpty: function getIfNotEmpty(collection) {
+      if (collection.length > 0) {
+        return collection;
+      }
+
+      return "empty array";
     },
-    getpos: function getpos(e) {
-      console.log(this.getPos(e.target));
+    getFirstIfNotEmpty: function getFirstIfNotEmpty(collection) {
+      if (collection.length > 0) {
+        return collection[0];
+      }
+
+      return "empty array";
     },
     updateDOM: function updateDOM(new_html, e) {
       this.html = new_html;
       e.target.innerHTML = new_html;
+    },
+    update: function update(e) {
+      this.html = e.target.innerHTML;
+    },
+    getpos: function getpos(e) {// console.log(this.getPos(e.target));
     },
     setPos: function setPos(context, length) {
       var node = document.querySelector('#' + context);
