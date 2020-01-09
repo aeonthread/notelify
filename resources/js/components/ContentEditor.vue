@@ -27,7 +27,6 @@ export default {
   methods: {
     update(e) {
       this.html = e.target.innerHTML;
-      console.log(this.getPos());
     },
     updateDOM(new_html, e) {
       this.html = new_html;

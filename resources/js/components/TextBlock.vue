@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div id="ed" v-model="html" class="editor" @keydown.tab.prevent="run" @click="getpos" contenteditable="tr" @input="update">
+        <div ref="ed" v-model="html" class="editor" @keydown.tab.prevent="tab" @input="getInput" @keyup="getCurrentContext" contenteditable="true">
         </div>
     </div>
 </template>
@@ -11,43 +11,60 @@ export default {
     name: 'TextBlock',
     data() {
         return {
-            html: '\n',
-            pos: {
-                start: 0,
-                end: 0,
-            },
+            html: '',
+            currentText: '',
+            id: '',
             index: {
-                line: [],
-                current: [
-
-                ],
+                lines: 0,
             }
         }
     },
     methods: {
-        run(e) {
-            let html = this.indexLines();
-            let newHtml = this.getFirstIfNotEmpty(html).parentElement.outerHTML;
-            this.updateDOM(newHtml, e);
-            // this.setPos();
-        },
-        getDocument() {
-            let parser = new DOMParser();
-            let document = parser.parseFromString(this.html, "text/html");
-            return document.childNodes;
-        },
-        getBody() {
-            let document = this.getDocument();
-            let body = this.getFirstIfNotEmpty(document).childNodes[1].childNodes;
-            return body;
-        },
-        indexLines() {
-            let body = this.getBody();
-            let items = this.getIfNotEmpty(body);
-            items.forEach((item, i) => {
-                item.id = uuid();
+        tab() {
+            let node = this.getSelectionElement();
+            let raw = node.firstChild.data.split(' ');
+            let word;
+            let command;
+            let arr = [];
+            raw.forEach((item, i) => {
+                let length = item.length;
+                let matchIndex = item.indexOf('`');
+                if (matchIndex !== -1) {
+                    word = item.substr(0, matchIndex);
+                    command = item.substr(matchIndex + 1, length);
+                    item = word;
+                }
+                arr.push(item);
             });
-            return body;
+            if (node.nodeName !== 'H1') {
+                let org = node.innerHTML;
+                let id = uuid();
+                let new_html = "<" + command + ' ' + "id=\'" + 'u' + id + "\'>" + arr.join(' ') + "</" + command + ">";
+                node.innerHTML = new_html;
+                let i = this.getCaretPosOffset(node);
+                this.setPos('u' + id, node.childNodes[0].innerText.length - i);
+            }
+        },
+        getCaretPosOffset(node) {
+            if (node.className == "editor") {
+                return 0;
+            } else {
+                return 0;
+            }
+        },
+        getCurrentContext() {
+            let editor = this.$refs.ed;
+            this.index.lines = editor.childNodes.length;
+        },
+        getSelectionElement() {
+            var selection = window.getSelection();
+            var container = selection.anchorNode;
+            if (container.nodeType !== 3) {
+                return container;
+            } else {
+                // return parent if text node 
+                return container.parentNode
+            }
         },
         getIfNotEmpty(collection) {
             if (collection.length > 0) {
@@ -65,7 +82,7 @@ export default {
             this.html = new_html;
             e.target.innerHTML = new_html;
         },
-        update(e) {
+        getInput(e) {
             this.html = e.target.innerHTML;
         },
         getpos(e) {
@@ -121,7 +138,11 @@ h2,
 h3,
 h4,
 h5 {
-    display: inline;
+    font-size: 20px;
+}
+
+.bold {
+    font-weight: bold;
 }
 
 .editor {
