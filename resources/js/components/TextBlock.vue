@@ -16,6 +16,9 @@ export default {
             id: '',
             index: {
                 lines: 0,
+                snapshot: [
+                    {}
+                ]
             }
         }
     },
@@ -36,13 +39,14 @@ export default {
                 }
                 arr.push(item);
             });
-            if (node.nodeName !== 'H1') {
-                let org = node.innerHTML;
+            if (node.nodeName == "DIV") {
+                let id = uuid();
+                let new_html = "<div><" + command + ' ' + "id=\'" + 'u' + id + "\'>" + arr.join(' ') + "</" + command + "></div>";
+                node.innerHTML = new_html;
+            } else {
                 let id = uuid();
                 let new_html = "<" + command + ' ' + "id=\'" + 'u' + id + "\'>" + arr.join(' ') + "</" + command + ">";
-                node.innerHTML = new_html;
-                let i = this.getCaretPosOffset(node);
-                this.setPos('u' + id, node.childNodes[0].innerText.length - i);
+                node.outerHTML = new_html;
             }
         },
         getCaretPosOffset(node) {
@@ -137,9 +141,7 @@ h1,
 h2,
 h3,
 h4,
-h5 {
-    font-size: 20px;
-}
+h5 {}
 
 .bold {
     font-weight: bold;

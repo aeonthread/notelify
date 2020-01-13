@@ -1,8 +1,9 @@
 <template>
   <div>
-    <template v-for="block in content.body">
+    <!-- <template v-for="block in content.body">
       <component :is="block.component" :block="block" :key="block._uid"></component>
-    </template>
+    </template> -->
+    <TextBlock/>
 </div>
 </template>
 <script>
