@@ -194,10 +194,36 @@ __webpack_require__.r(__webpack_exports__);
     tab: function tab() {
       var node = this.getSelectionElement();
       var raw = node.firstChild.data.split(' ');
+      var snapshot = this.getSnapshot(raw);
+      var el;
+      var text;
+      var id;
+      var master = document.createElement('div');
+      snapshot.forEach(function (item, i) {
+        id = uuid_v1__WEBPACK_IMPORTED_MODULE_0___default()();
+        el = document.createElement(item.command);
+        var free = document.createElement("span");
+        var freetext = document.createTextNode(' ');
+        text = document.createTextNode(item.text);
+        el.appendChild(text);
+        free.appendChild(freetext);
+        master.appendChild(el);
+        master.appendChild(free);
+      });
+
+      if (node.className == "editor") {
+        node.innerHTML = master.innerHTML;
+      } else {
+        node.outerHTML = master.innerHTML;
+      }
+    },
+    getSnapshot: function getSnapshot(raw) {
       var word;
       var command;
-      var arr = [];
+      var snapshot = [];
       raw.forEach(function (item, i) {
+        console.log(item);
+        command = "span";
         var length = item.length;
         var matchIndex = item.indexOf('`');
 
@@ -207,20 +233,13 @@ __webpack_require__.r(__webpack_exports__);
           item = word;
         }
 
-        arr.push(item);
+        snapshot[i] = {
+          text: item,
+          command: command
+        };
       });
-
-      if (node.nodeName == "DIV") {
-        var id = uuid_v1__WEBPACK_IMPORTED_MODULE_0___default()();
-        var new_html = "<div><" + command + ' ' + "id=\'" + 'u' + id + "\'>" + arr.join(' ') + "</" + command + "></div>";
-        node.innerHTML = new_html;
-      } else {
-        var _id = uuid_v1__WEBPACK_IMPORTED_MODULE_0___default()();
-
-        var _new_html = "<" + command + ' ' + "id=\'" + 'u' + _id + "\'>" + arr.join(' ') + "</" + command + ">";
-
-        node.outerHTML = _new_html;
-      }
+      console.log(snapshot);
+      return snapshot;
     },
     getCaretPosOffset: function getCaretPosOffset(node) {
       if (node.className == "editor") {
@@ -329,7 +348,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, "\nspan,\np,\nh1,\nh2,\nh3,\nh4,\nh5 {}\n.bold {\n    font-weight: bold;\n}\n.editor {\n    min-height: 20px;\n    white-space: pre;\n    background-color: rgb(255, 247, 207);\n}\n", ""]);
+exports.push([module.i, "\nspan,\np,\nh1,\nh2,\nh3,\nh4,\nh5 {\n}\n.bold {\n    font-weight: bold;\n}\n.editor {\n    min-height: 20px;\n    white-space: pre;\n    background-color: rgb(255, 247, 207);\n}\n", ""]);
 
 // exports
 

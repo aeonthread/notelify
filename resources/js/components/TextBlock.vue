@@ -26,10 +26,35 @@ export default {
         tab() {
             let node = this.getSelectionElement();
             let raw = node.firstChild.data.split(' ');
+            let snapshot = this.getSnapshot(raw);
+            let el;
+            let text;
+            let id;
+            let master = document.createElement('div');
+            snapshot.forEach((item, i) => {
+                id = uuid();
+                el = document.createElement(item.command);
+                let free = document.createElement("span");
+                let freetext = document.createTextNode(' ');
+                text = document.createTextNode(item.text);
+                el.appendChild(text);
+                free.appendChild(freetext);
+                master.appendChild(el);
+                master.appendChild(free);
+            });
+            if (node.className == "editor") {
+                node.innerHTML = master.innerHTML;
+            } else {
+                node.outerHTML = master.innerHTML;
+            }
+        },
+        getSnapshot(raw) {
             let word;
             let command;
-            let arr = [];
+            let snapshot = [];
             raw.forEach((item, i) => {
+                console.log(item);
+                command = "span";
                 let length = item.length;
                 let matchIndex = item.indexOf('`');
                 if (matchIndex !== -1) {
@@ -37,17 +62,10 @@ export default {
                     command = item.substr(matchIndex + 1, length);
                     item = word;
                 }
-                arr.push(item);
+                snapshot[i] = { text: item, command: command };
             });
-            if (node.nodeName == "DIV") {
-                let id = uuid();
-                let new_html = "<div><" + command + ' ' + "id=\'" + 'u' + id + "\'>" + arr.join(' ') + "</" + command + "></div>";
-                node.innerHTML = new_html;
-            } else {
-                let id = uuid();
-                let new_html = "<" + command + ' ' + "id=\'" + 'u' + id + "\'>" + arr.join(' ') + "</" + command + ">";
-                node.outerHTML = new_html;
-            }
+            console.log(snapshot);
+            return snapshot;
         },
         getCaretPosOffset(node) {
             if (node.className == "editor") {
@@ -141,7 +159,8 @@ h1,
 h2,
 h3,
 h4,
-h5 {}
+h5 {
+}
 
 .bold {
     font-weight: bold;
